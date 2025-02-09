@@ -65,8 +65,7 @@ def main():
             door_choice = input(DOOR_PROMPT)
 
         if main_menu_choice == '3':
-            name_confirmation = None
-            while name_confirmation != '1':
+            while True:
                 print(NAME_SELECTION_TEXT)
                 name = input(NAME_SELECTION_PROMPT).strip()
                 if name == "":
@@ -77,6 +76,8 @@ def main():
                 name_confirmation = None
                 while name_confirmation != '1' and name_confirmation != '2':
                     name_confirmation = input(NAME_CONFIRMATION_PROMPT)
+                if name_confirmation == '1':
+                    break
 
         if main_menu_choice == '4':
             print('Statistics')
