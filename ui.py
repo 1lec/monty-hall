@@ -1,5 +1,4 @@
 VALID_MAIN_MENU_INPUTS = ['1', '2', '3', '4', '5', 'PLAY']
-name = ""
 
 MAIN_MENU_TEXT = """Welcome to the Monty Hall Game Simulator!
 Type PLAY and press enter to start a game, or using your keyboard,
@@ -50,6 +49,7 @@ Confirm your Name Selection
 NAME_CONFIRMATION_PROMPT = "Confirm name? "
 
 def main():
+    name = ""
     while True:
         print(MAIN_MENU_TEXT)
         main_menu_choice = None
