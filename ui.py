@@ -1,3 +1,5 @@
+import pydoc
+
 VALID_MAIN_MENU_INPUTS = ['1', '2', '3', '4', '5', 'PLAY']
 
 MAIN_MENU_TEXT = """Welcome to the Monty Hall Game Simulator!
@@ -15,6 +17,24 @@ Main Menu
 -----------------------------------------------------------
 """
 MAIN_MENU_PROMPT = "Type PLAY or enter a menu option: "
+
+ABOUT_MONTY_HALL_TEXT = """
+                                About the Monty Hall Game
+
+The Monty Hall Game is a probability game based off the Monty Hall Problem, which itself originates
+from the game show Let's Make a Deal, hosted by Monty Hall. The show first aired in 1963 and features
+a series of minigames. One of these minigames is the basis of this program.
+
+During our minigame, the host Monty Hall presents three doors to a contestant. He states that while
+one door has a prize (oftentimes a car) behind it, the other two doors have nothing but goats! After
+the contestant selects a door, the host, who knows the contents of each door, reveals one of the two
+goats behind a door the contestant did not choose.
+
+With only two doors remaining, one with a prize and another with a goat, Monty Hall poses another
+question to the contestant: Would you like to stick with your door, or switch to the other?
+
+Press 'q' to return to the main main.
+"""
 
 DOOR_TEXT = """
 Before you stand three doors, but only one has a prize behind it!
@@ -48,6 +68,7 @@ Confirm your Name Selection
 """
 NAME_CONFIRMATION_PROMPT = "Confirm name? "
 
+VALID_STATISTICS_MENU_INPUTS = ['1', '2', '3']
 STATISTICS_MENU_TEXT = """
 Use the menu below to view statistics regarding the Monty Hall Game.
 
@@ -70,8 +91,7 @@ def main():
             main_menu_choice = input(MAIN_MENU_PROMPT)
 
         if main_menu_choice == '1':
-            print("About the Monty Hall Game")
-            input("Press enter to return to the main menu.")
+            pydoc.pager(ABOUT_MONTY_HALL_TEXT)
 
         if main_menu_choice == '2' or main_menu_choice == 'PLAY':
             print(DOOR_TEXT)
@@ -95,6 +115,12 @@ def main():
         if main_menu_choice == '4':
             print(STATISTICS_MENU_TEXT)
             stats_choice = input(STATISTICS_PROMPT)
+            while stats_choice not in VALID_STATISTICS_MENU_INPUTS:
+                stats_choice = input(STATISTICS_PROMPT)
+            if stats_choice == '1':
+                print("Print name entry")
+            if stats_choice == '2':
+                print("leaderboard")
 
         if main_menu_choice == '5':
             return
