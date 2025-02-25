@@ -1,4 +1,5 @@
 import pydoc
+import zmq
 
 VALID_MAIN_MENU_INPUTS = ['1', '2', '3', '4', '5', 'PLAY']
 
@@ -94,6 +95,10 @@ Statistics Menu
 STATISTICS_PROMPT = "Enter menu option: "
 
 def main():
+    context = zmq.Context()
+    prng_socket = context.socket(zmq.REQ)
+    prng_socket.connect("tcp://localhost:5555")
+
     name = ""
     while True:
         print(MAIN_MENU_TEXT)
@@ -107,6 +112,10 @@ def main():
 
         # Play
         if main_menu_choice == '2' or main_menu_choice == 'PLAY':
+            # Randomly place prize behind a door
+            prng_socket.send_json({"type": "single", "N": 3})
+            prize = prng_socket.recv_json().get("random_number")
+
             print(DOOR_TEXT)
             door_choice = input(DOOR_PROMPT)
 
