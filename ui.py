@@ -48,6 +48,19 @@ Confirm your Name Selection
 """
 NAME_CONFIRMATION_PROMPT = "Confirm name? "
 
+STATISTICS_MENU_TEXT = """
+Use the menu below to view statistics regarding the Monty Hall Game.
+
+-----------------------------------------------------------
+Statistics Menu
+-----------------------------------------------------------
+[1] Winning Percentage
+[2] Leaderboard
+[3] Main Menu
+-----------------------------------------------------------
+"""
+STATISTICS_PROMPT = "Enter menu option: "
+
 def main():
     name = ""
     while True:
@@ -80,8 +93,8 @@ def main():
                     break
 
         if main_menu_choice == '4':
-            print('Statistics')
-            input("Press enter to return to the main menu.")
+            print(STATISTICS_MENU_TEXT)
+            stats_choice = input(STATISTICS_PROMPT)
 
         if main_menu_choice == '5':
             return
