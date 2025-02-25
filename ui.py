@@ -11,7 +11,7 @@ Main Menu
 -----------------------------------------------------------
 [1] About the Monty Hall Game
 [2] Start Game
-[3] Enter Name
+[3] Name Selection
 [4] Statistics
 [5] Exit
 -----------------------------------------------------------
@@ -50,12 +50,23 @@ Choose a Door!
 """
 DOOR_PROMPT = "Enter menu option: "
 
+VALID_NAME_MENU_INPUTS = ['1', '2', '3']
 NAME_SELECTION_TEXT = """
 Choosing a name is not a requirement to play the Monty Hall Game, but it's easy to do,
-and allows you to save your results to be viewed later under the "Statistics" menu option.
-
-If you do not wish to save your results, hit enter without typing a name.
+and lets you save your game results to be viewed later under the "Statistics" menu option.
 """
+NO_NAME_SELECTED = "You are not currently playing under a name. Your results will not be saved."
+YES_NAME_SELECTED = "You are currently playing under a name: "
+NAME_SELECTION_MENU = """
+-----------------------------------------------------------
+Name Selection
+-----------------------------------------------------------
+[1] Choose a Name
+[2] Erase Name
+[3] Main Menu
+-----------------------------------------------------------
+"""
+NAME_MENU_PROMPT = "Enter menu option: "
 NAME_SELECTION_PROMPT = "Enter a name: "
 NAME_NOT_ENTERED_TEXT = "You did not enter a name. You can play without a name, but your game results will not be saved."
 NAME_CONFIRMATION_MENU = """
@@ -86,32 +97,52 @@ def main():
     name = ""
     while True:
         print(MAIN_MENU_TEXT)
-        main_menu_choice = None
+        main_menu_choice = input(MAIN_MENU_PROMPT)
         while main_menu_choice not in VALID_MAIN_MENU_INPUTS:
             main_menu_choice = input(MAIN_MENU_PROMPT)
 
+        # About
         if main_menu_choice == '1':
             pydoc.pager(ABOUT_MONTY_HALL_TEXT)
 
+        # Play
         if main_menu_choice == '2' or main_menu_choice == 'PLAY':
             print(DOOR_TEXT)
             door_choice = input(DOOR_PROMPT)
 
+        # Name Selection
         if main_menu_choice == '3':
-            while True:
-                print(NAME_SELECTION_TEXT)
-                name = input(NAME_SELECTION_PROMPT).strip()
-                if name == "":
-                    print(NAME_NOT_ENTERED_TEXT)
-                else:
-                    print(f"You entered the name {name}.")
-                print(NAME_CONFIRMATION_MENU)
-                name_confirmation = None
-                while name_confirmation != '1' and name_confirmation != '2':
-                    name_confirmation = input(NAME_CONFIRMATION_PROMPT)
-                if name_confirmation == '1':
-                    break
+            print(NAME_SELECTION_TEXT)
+            if name:
+                print(YES_NAME_SELECTED + name)
+            else:
+                print(NO_NAME_SELECTED)
+            print(NAME_SELECTION_MENU)
 
+            name_menu_choice = input(NAME_MENU_PROMPT)
+            while name_menu_choice not in VALID_NAME_MENU_INPUTS:
+                name_menu_choice = input(NAME_MENU_PROMPT)
+
+            # Choose a Name
+            if name_menu_choice == '1':
+                while True:
+                    name = input(NAME_SELECTION_PROMPT).strip()
+                    if name == "":
+                        print(NAME_NOT_ENTERED_TEXT)
+                    else:
+                        print(f"You entered the name {name}.")
+                    print(NAME_CONFIRMATION_MENU)
+                    name_confirmation = input(NAME_CONFIRMATION_PROMPT)
+                    while name_confirmation != '1' and name_confirmation != '2':
+                        name_confirmation = input(NAME_CONFIRMATION_PROMPT)
+                    if name_confirmation == '1':
+                        break
+            
+            # Erase Name
+            if name_menu_choice == '2':
+                name = ""
+
+        # Statistics
         if main_menu_choice == '4':
             print(STATISTICS_MENU_TEXT)
             stats_choice = input(STATISTICS_PROMPT)
@@ -122,6 +153,7 @@ def main():
             if stats_choice == '2':
                 print("leaderboard")
 
+        # Exit Program
         if main_menu_choice == '5':
             return
 
