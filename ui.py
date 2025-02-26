@@ -98,6 +98,7 @@ STATISTICS_PROMPT = "Enter menu option: "
 class MontyHall:
     """Represents a game of Monty Hall."""
     def __init__(self, prng_port):
+        self.name = ""
         self.context = zmq.Context()
         self.prng_socket = self.prng_connect(prng_port)
 
@@ -107,7 +108,6 @@ class MontyHall:
         prng_socket.connect(f"tcp://localhost:{prng_port}")
         return prng_socket
 
-
     def get_main_menu_selection(self):
         """Prints the main menu and prompts the user for a selection."""
         print(MAIN_MENU_TEXT)
@@ -115,6 +115,22 @@ class MontyHall:
         while main_menu_choice not in VALID_MAIN_MENU_INPUTS:
             main_menu_choice = input(MAIN_MENU_PROMPT)
         return main_menu_choice
+
+    def get_door_menu_selection(self):
+        """Prints the door menu and prompts the user for a selection."""
+        print(DOOR_MENU)
+        door_choice = input(DOOR_PROMPT)
+        while door_choice not in VALID_DOOR_INPUTS:
+            door_choice = input(DOOR_PROMPT)
+        return door_choice
+
+    def get_statistics_menu_selection(self):
+        """Prints the statistics menu and prompts the user for a selection."""
+        print(STATISTICS_MENU_TEXT)
+        stats_choice = input(STATISTICS_PROMPT)
+        while stats_choice not in VALID_STATISTICS_MENU_INPUTS:
+            stats_choice = input(STATISTICS_PROMPT)
+        return stats_choice
 
     def generate_final_door_menu(self, selected_door, unselected_door):
         """Receives two door numbers and generates the final door selection menu."""
@@ -132,7 +148,6 @@ class MontyHall:
         return final_door_menu
 
     def play(self):
-        name = ""
         while True:
             main_menu_choice = self.get_main_menu_selection()
 
@@ -147,10 +162,7 @@ class MontyHall:
                 self.prng_socket.send_json({"type": "single", "N": 3})
                 prize = str(self.prng_socket.recv_json().get("random_number"))
 
-                print(DOOR_MENU)
-                door_choice = input(DOOR_PROMPT)
-                while door_choice not in VALID_DOOR_INPUTS:
-                    door_choice = input(DOOR_PROMPT)
+                door_choice = self.get_door_menu_selection()
 
                 if door_choice != '4':
                     if prize == door_choice:
@@ -172,8 +184,8 @@ class MontyHall:
             # Name Selection
             if main_menu_choice == '3':
                 print(NAME_SELECTION_TEXT)
-                if name:
-                    print(YES_NAME_SELECTED + name)
+                if self.name:
+                    print(YES_NAME_SELECTED + self.name)
                 else:
                     print(NO_NAME_SELECTED)
                 print(NAME_SELECTION_MENU)
@@ -185,11 +197,11 @@ class MontyHall:
                 # Choose a Name
                 if name_menu_choice == '1':
                     while True:
-                        name = input(NAME_SELECTION_PROMPT).strip()
-                        if name == "":
+                        self.name = input(NAME_SELECTION_PROMPT).strip()
+                        if self.name == "":
                             print(NAME_NOT_ENTERED_TEXT)
                         else:
-                            print(f"You entered the name {name}.")
+                            print(f"You entered the name {self.name}.")
                         print(NAME_CONFIRMATION_MENU)
                         name_confirmation = input(NAME_CONFIRMATION_PROMPT)
                         while name_confirmation != '1' and name_confirmation != '2':
@@ -199,14 +211,11 @@ class MontyHall:
                 
                 # Erase Name
                 if name_menu_choice == '2':
-                    name = ""
+                    self.name = ""
 
             # Statistics
             if main_menu_choice == '4':
-                print(STATISTICS_MENU_TEXT)
-                stats_choice = input(STATISTICS_PROMPT)
-                while stats_choice not in VALID_STATISTICS_MENU_INPUTS:
-                    stats_choice = input(STATISTICS_PROMPT)
+                stats_choice = self.get_statistics_menu_selection()
                 if stats_choice == '1':
                     print("Print name entry")
                 if stats_choice == '2':
