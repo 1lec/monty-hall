@@ -2,8 +2,6 @@ import pydoc
 import zmq
 import textwrap
 
-VALID_MAIN_MENU_INPUTS = ['1', '2', '3', '4', '5', 'PLAY']
-
 MAIN_MENU_TEXT = """Welcome to the Monty Hall Game Simulator!
 Type PLAY and press enter to start a game, or using your keyboard,
 enter a number to select an option from the menu below.
@@ -19,6 +17,7 @@ Main Menu
 -----------------------------------------------------------
 """
 MAIN_MENU_PROMPT = "Type PLAY or enter a menu option: "
+VALID_MAIN_MENU_INPUTS = ['1', '2', '3', '4', '5', 'PLAY']
 
 ABOUT_MONTY_HALL_TEXT = """
                                 About the Monty Hall Game
@@ -38,7 +37,6 @@ question to the contestant: Would you like to stick with your door, or switch to
 Press 'q' to return to the main main.
 """
 
-VALID_DOOR_INPUTS = ['1', '2', '3', '4']
 DOOR_MENU = """
 Before you stand three doors, but only one has a prize behind it!
 
@@ -52,15 +50,16 @@ Choose a Door!
 -----------------------------------------------------------
 """
 DOOR_PROMPT = "Enter menu option: "
+VALID_DOOR_INPUTS = ['1', '2', '3', '4']
 
-VALID_NAME_MENU_INPUTS = ['1', '2', '3']
 NAME_SELECTION_TEXT = """
 Choosing a name is not a requirement to play the Monty Hall Game, but it's easy to do,
 and lets you save your game results to be viewed later under the "Statistics" menu option.
 """
 NO_NAME_SELECTED = "You are not currently playing under a name. Your results will not be saved."
 YES_NAME_SELECTED = "You are currently playing under a name: "
-NAME_SELECTION_MENU = """
+
+NAME_MENU_TEXT = """
 -----------------------------------------------------------
 Name Selection
 -----------------------------------------------------------
@@ -70,9 +69,12 @@ Name Selection
 -----------------------------------------------------------
 """
 NAME_MENU_PROMPT = "Enter menu option: "
-NAME_SELECTION_PROMPT = "Enter a name: "
+VALID_NAME_MENU_INPUTS = ['1', '2', '3']
+
+NAME_ENTRY_PROMPT = "Enter a name: "
 NAME_NOT_ENTERED_TEXT = "You did not enter a name. You can play without a name, but your game results will not be saved."
-NAME_CONFIRMATION_MENU = """
+
+NAME_CONFIRMATION_MENU_TEXT = """
 -----------------------------------------------------------
 Confirm your Name Selection
 -----------------------------------------------------------
@@ -81,9 +83,9 @@ Confirm your Name Selection
 -----------------------------------------------------------
 """
 NAME_CONFIRMATION_PROMPT = "Confirm name? "
+VALID_NAME_CONFIRMATION_INPUTS = ['1', '2']
 
-VALID_STATISTICS_MENU_INPUTS = ['1', '2', '3']
-STATISTICS_MENU_TEXT = """
+STATS_MENU_TEXT = """
 Use the menu below to view statistics regarding the Monty Hall Game.
 
 -----------------------------------------------------------
@@ -94,7 +96,16 @@ Statistics Menu
 [3] Main Menu
 -----------------------------------------------------------
 """
-STATISTICS_PROMPT = "Enter menu option: "
+STATS_PROMPT = "Enter menu option: "
+VALID_STATS_MENU_INPUTS = ['1', '2', '3']
+
+class Menu:
+    """Represents a menu."""
+    def __init__(self, text, prompt, valid_inputs):
+        self.text = text
+        self.prompt = prompt
+        self.valid_inputs = valid_inputs
+
 
 class MontyHall:
     """Represents a game of Monty Hall."""
@@ -103,6 +114,13 @@ class MontyHall:
         self.context = zmq.Context()
         self.prng_socket = self.prng_connect(prng_port)
         self.msg_socket = self.prng_connect(msg_port)
+        self.menus = {
+            "main": Menu(MAIN_MENU_TEXT, MAIN_MENU_PROMPT, VALID_MAIN_MENU_INPUTS),
+            "door": Menu(DOOR_MENU, DOOR_PROMPT, VALID_DOOR_INPUTS),
+            "name": Menu(NAME_MENU_TEXT, NAME_MENU_PROMPT, VALID_NAME_MENU_INPUTS),
+            "name_confirm": Menu(NAME_CONFIRMATION_MENU_TEXT, NAME_CONFIRMATION_PROMPT, VALID_NAME_CONFIRMATION_INPUTS),
+            "stats": Menu(STATS_MENU_TEXT, STATS_PROMPT, VALID_STATS_MENU_INPUTS)
+        }
 
     def prng_connect(self, prng_port):
         """Receives a port number and forms a ZeroMQ connection through the port."""
@@ -161,7 +179,7 @@ class MontyHall:
         # Choose a Name
         if name_menu_choice == '1':
             while True:
-                self.name = input(NAME_SELECTION_PROMPT).strip()
+                self.name = input(NAME_ENTRY_PROMPT).strip()
                 if self.name == "":
                     print(NAME_NOT_ENTERED_TEXT)
                 else:
@@ -189,6 +207,14 @@ class MontyHall:
         if stats_choice == '2':
             print("leaderboard")
 
+    def get_menu_selection(self, menu):
+        """Receives a menu object, prompts the user for valid input, and returns the user's selection."""
+        print(menu.text)
+        menu_choice = input(menu.prompt)
+        while menu_choice not in menu.valid_inputs:
+            menu_choice = input(menu.prompt)
+        return menu_choice
+
     def get_main_menu_selection(self):
         """Prints the main menu and prompts the user for a selection."""
         print(MAIN_MENU_TEXT)
@@ -212,7 +238,7 @@ class MontyHall:
             print(YES_NAME_SELECTED + self.name)
         else:
             print(NO_NAME_SELECTED)
-        print(NAME_SELECTION_MENU)
+        print(NAME_MENU_TEXT)
 
         name_menu_choice = input(NAME_MENU_PROMPT)
         while name_menu_choice not in VALID_NAME_MENU_INPUTS:
@@ -221,7 +247,7 @@ class MontyHall:
     
     def get_name_confirmation(self):
         """Prints the name menu and prompts the user for a selection."""
-        print(NAME_CONFIRMATION_MENU)
+        print(NAME_CONFIRMATION_MENU_TEXT)
         name_confirmation = input(NAME_CONFIRMATION_PROMPT)
         while name_confirmation not in ['1', '2']:
             name_confirmation = input(NAME_CONFIRMATION_PROMPT)
@@ -229,10 +255,10 @@ class MontyHall:
 
     def get_statistics_menu_selection(self):
         """Prints the statistics menu and prompts the user for a selection."""
-        print(STATISTICS_MENU_TEXT)
-        stats_choice = input(STATISTICS_PROMPT)
-        while stats_choice not in VALID_STATISTICS_MENU_INPUTS:
-            stats_choice = input(STATISTICS_PROMPT)
+        print(STATS_MENU_TEXT)
+        stats_choice = input(STATS_PROMPT)
+        while stats_choice not in VALID_STATS_MENU_INPUTS:
+            stats_choice = input(STATS_PROMPT)
         return stats_choice
 
     def get_final_door_selection(self, selected_door, unselected_door, revealed):
