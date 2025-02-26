@@ -99,6 +99,7 @@ Statistics Menu
 STATS_PROMPT = "Enter menu option: "
 VALID_STATS_MENU_INPUTS = ['1', '2', '3']
 
+
 class Menu:
     """Represents a menu."""
     def __init__(self, title, text, prompt, valid_inputs):
@@ -250,7 +251,7 @@ class MontyHall:
         """Receives information about the status of each door, prompts the user if they would like to stay
         with their original choice or not, and returns the user's final door selection."""
 
-        final_door_menu = textwrap.dedent(f"""
+        final_door_menu_text = textwrap.dedent(f"""
         Door {revealed} has a goat behind it!
 
         You originally selected Door {selected_door}, but {unselected_door} is still available.
@@ -263,11 +264,8 @@ class MontyHall:
         [SWITCH] Switch to Door {unselected_door}
         -----------------------------------------------------------
         """)
-        print(final_door_menu)
-
-        final_selection = input("Enter STAY or SWTICH: ")
-        while final_selection not in ['STAY', 'SWITCH']:
-            final_selection = input("Enter STAY or SWTICH: ")
+        final_door_menu = Menu("door", final_door_menu_text, "Enter STAY or SWTICH: ", ['STAY', 'SWITCH'])
+        final_selection = self.get_menu_selection(final_door_menu)
         
         if final_selection == 'STAY':
             return selected_door
