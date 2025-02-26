@@ -74,7 +74,7 @@ VALID_NAME_MENU_INPUTS = ['1', '2', '3']
 NAME_ENTRY_PROMPT = "Enter a name: "
 NAME_NOT_ENTERED_TEXT = "You did not enter a name. You can play without a name, but your game results will not be saved."
 
-NAME_CONFIRMATION_MENU_TEXT = """
+NAME_CONFIRM_MENU_TEXT = """
 -----------------------------------------------------------
 Confirm your Name Selection
 -----------------------------------------------------------
@@ -82,8 +82,8 @@ Confirm your Name Selection
 [2] No
 -----------------------------------------------------------
 """
-NAME_CONFIRMATION_PROMPT = "Confirm name? "
-VALID_NAME_CONFIRMATION_INPUTS = ['1', '2']
+NAME_CONFIRM_PROMPT = "Confirm name? "
+VALID_NAME_CONFIRM_INPUTS = ['1', '2']
 
 STATS_MENU_TEXT = """
 Use the menu below to view statistics regarding the Monty Hall Game.
@@ -101,7 +101,8 @@ VALID_STATS_MENU_INPUTS = ['1', '2', '3']
 
 class Menu:
     """Represents a menu."""
-    def __init__(self, text, prompt, valid_inputs):
+    def __init__(self, title, text, prompt, valid_inputs):
+        self.title = title
         self.text = text
         self.prompt = prompt
         self.valid_inputs = valid_inputs
@@ -115,11 +116,11 @@ class MontyHall:
         self.prng_socket = self.prng_connect(prng_port)
         self.msg_socket = self.prng_connect(msg_port)
         self.menus = {
-            "main": Menu(MAIN_MENU_TEXT, MAIN_MENU_PROMPT, VALID_MAIN_MENU_INPUTS),
-            "door": Menu(DOOR_MENU, DOOR_PROMPT, VALID_DOOR_INPUTS),
-            "name": Menu(NAME_MENU_TEXT, NAME_MENU_PROMPT, VALID_NAME_MENU_INPUTS),
-            "name_confirm": Menu(NAME_CONFIRMATION_MENU_TEXT, NAME_CONFIRMATION_PROMPT, VALID_NAME_CONFIRMATION_INPUTS),
-            "stats": Menu(STATS_MENU_TEXT, STATS_PROMPT, VALID_STATS_MENU_INPUTS)
+            "main": Menu("main", MAIN_MENU_TEXT, MAIN_MENU_PROMPT, VALID_MAIN_MENU_INPUTS),
+            "door": Menu("door", DOOR_MENU, DOOR_PROMPT, VALID_DOOR_INPUTS),
+            "name": Menu("name", NAME_MENU_TEXT, NAME_MENU_PROMPT, VALID_NAME_MENU_INPUTS),
+            "name_confirm": Menu("name_confirm", NAME_CONFIRM_MENU_TEXT, NAME_CONFIRM_PROMPT, VALID_NAME_CONFIRM_INPUTS),
+            "stats": Menu("stats", STATS_MENU_TEXT, STATS_PROMPT, VALID_STATS_MENU_INPUTS)
         }
 
     def prng_connect(self, prng_port):
@@ -145,8 +146,31 @@ class MontyHall:
         # Returns a number 1 to 3 inclusive
         self.prng_socket.send_json({"type": "single", "N": 3})
         return str(self.prng_socket.recv_json().get("random_number"))
-        
+    
+    def main_menu(self):
+        while True:
+            main_menu_choice = self.get_menu_selection(self.menus["main"])
 
+            # About
+            if main_menu_choice == '1':
+                pydoc.pager(ABOUT_MONTY_HALL_TEXT)
+
+            # Play
+            if main_menu_choice in ['2', 'PLAY']:
+                self.play()
+
+            # Name Selection
+            if main_menu_choice == '3':
+                self.name_selection()
+
+            # Statistics
+            if main_menu_choice == '4':
+                self.statistics()
+
+            # Exit Program
+            if main_menu_choice == '5':
+                return
+        
     def play(self):
         """This method runs when the user selects option 3 from the main menu."""
         doors = ['1', '2', '3']
@@ -174,7 +198,7 @@ class MontyHall:
 
     def name_selection(self):
         """This method runs when the user selects option 3 from the main menu."""
-        name_menu_choice = self.get_name_menu_selection()
+        name_menu_choice = self.get_menu_selection(self.menus["name"])
 
         # Choose a Name
         if name_menu_choice == '1':
@@ -184,8 +208,8 @@ class MontyHall:
                     print(NAME_NOT_ENTERED_TEXT)
                 else:
                     print(f"You entered the name {self.name}.")
-                name_confirmation = self.get_menu_selection(self.menus["name_confirm"])
-                if name_confirmation == '1':
+                name_confirm = self.get_menu_selection(self.menus["name_confirm"])
+                if name_confirm == '1':
                     break
         
         # Erase Name
@@ -209,25 +233,18 @@ class MontyHall:
 
     def get_menu_selection(self, menu):
         """Receives a menu object, prompts the user for valid input, and returns the user's selection."""
+        if menu.title == "name":
+            print(NAME_SELECTION_TEXT)
+            if self.name:
+                print(YES_NAME_SELECTED + self.name)
+            else:
+                print(NO_NAME_SELECTED)
+
         print(menu.text)
         menu_choice = input(menu.prompt)
         while menu_choice not in menu.valid_inputs:
             menu_choice = input(menu.prompt)
         return menu_choice
-
-    def get_name_menu_selection(self):
-        """Prints the name menu and prompts the user for a selection."""
-        print(NAME_SELECTION_TEXT)
-        if self.name:
-            print(YES_NAME_SELECTED + self.name)
-        else:
-            print(NO_NAME_SELECTED)
-        print(NAME_MENU_TEXT)
-
-        name_menu_choice = input(NAME_MENU_PROMPT)
-        while name_menu_choice not in VALID_NAME_MENU_INPUTS:
-            name_menu_choice = input(NAME_MENU_PROMPT)
-        return name_menu_choice
 
     def get_final_door_selection(self, selected_door, unselected_door, revealed):
         """Receives information about the status of each door, prompts the user if they would like to stay
@@ -256,31 +273,6 @@ class MontyHall:
             return selected_door
         else:
             return unselected_door
-
-
-    def main_menu(self):
-        while True:
-            main_menu_choice = self.get_menu_selection(self.menus["main"])
-
-            # About
-            if main_menu_choice == '1':
-                pydoc.pager(ABOUT_MONTY_HALL_TEXT)
-
-            # Play
-            if main_menu_choice in ['2', 'PLAY']:
-                self.play()
-
-            # Name Selection
-            if main_menu_choice == '3':
-                self.name_selection()
-
-            # Statistics
-            if main_menu_choice == '4':
-                self.statistics()
-
-            # Exit Program
-            if main_menu_choice == '5':
-                return
 
 
 if __name__ == "__main__":
