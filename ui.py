@@ -37,7 +37,8 @@ question to the contestant: Would you like to stick with your door, or switch to
 Press 'q' to return to the main main.
 """
 
-DOOR_TEXT = """
+VALID_DOOR_INPUTS = ['1', '2', '3', '4']
+DOOR_MENU = """
 Before you stand three doors, but only one has a prize behind it!
 
 -----------------------------------------------------------
@@ -112,12 +113,27 @@ def main():
 
         # Play
         if main_menu_choice == '2' or main_menu_choice == 'PLAY':
+            doors = ['1', '2', '3']
             # Randomly place prize behind a door
             prng_socket.send_json({"type": "single", "N": 3})
-            prize = prng_socket.recv_json().get("random_number")
+            prize = str(prng_socket.recv_json().get("random_number"))
 
-            print(DOOR_TEXT)
+            print(DOOR_MENU)
             door_choice = input(DOOR_PROMPT)
+            while door_choice not in VALID_DOOR_INPUTS:
+                door_choice = input(DOOR_PROMPT)
+
+            if door_choice != '4':
+                if prize == door_choice:
+                    exclusion_request = {"type": "excluded", "N": 3, "X": int(prize)}
+                    prng_socket.send_json(exclusion_request)
+                    revealed = str(prng_socket.recv_json().get("random_number"))
+                else:
+                    for door in doors:
+                        if door != prize and door != door_choice:
+                            revealed = door
+                doors.remove(revealed)
+                print(f"Door {revealed} has a goat behind it!")
 
         # Name Selection
         if main_menu_choice == '3':
