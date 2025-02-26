@@ -115,21 +115,29 @@ class MontyHall:
         msg_socket = self.context.socket(zmq.REQ)
         msg_socket.connect(f"tcp://localhost:{msg_port}")
         return msg_socket
+    
+    def get_prn(self, exclude=None):
+        """Returns a pseudorandom number in the range 1 to 3, inclusive. If the exclude parameter
+        is provided, that number cannot be returned."""
+        # Returns a number 1 to 3 inclusive, excluding the number in the exclude parameter
+        if exclude:
+            exclusion_request = {"type": "excluded", "N": 3, "X": int(exclude)}
+            self.prng_socket.send_json(exclusion_request)
+            return str(self.prng_socket.recv_json().get("random_number"))
+        # Returns a number 1 to 3 inclusive
+        self.prng_socket.send_json({"type": "single", "N": 3})
+        return str(self.prng_socket.recv_json().get("random_number"))
+        
 
     def play(self):
         """This method runs when the user selects option 3 from the main menu."""
         doors = ['1', '2', '3']
-        # Randomly place prize behind a door
-        self.prng_socket.send_json({"type": "single", "N": 3})
-        prize = str(self.prng_socket.recv_json().get("random_number"))
-
+        prize = self.get_prn()
         door_choice = self.get_door_menu_selection()
 
-        if door_choice != '4':
+        if door_choice in doors:
             if prize == door_choice:
-                exclusion_request = {"type": "excluded", "N": 3, "X": int(prize)}
-                self.prng_socket.send_json(exclusion_request)
-                revealed = str(self.prng_socket.recv_json().get("random_number"))
+                revealed = self.get_prn(prize)
             else:
                 for door in doors:
                     if door != prize and door != door_choice:
