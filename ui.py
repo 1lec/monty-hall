@@ -151,7 +151,7 @@ class MontyHall:
         """This method runs when the user selects option 3 from the main menu."""
         doors = ['1', '2', '3']
         prize = self.get_prn()
-        door_choice = self.get_door_menu_selection()
+        door_choice = self.get_menu_selection(self.menus["door"])
 
         if door_choice in doors:
             if prize == door_choice:
@@ -184,7 +184,7 @@ class MontyHall:
                     print(NAME_NOT_ENTERED_TEXT)
                 else:
                     print(f"You entered the name {self.name}.")
-                name_confirmation = self.get_name_confirmation()
+                name_confirmation = self.get_menu_selection(self.menus["name_confirm"])
                 if name_confirmation == '1':
                     break
         
@@ -201,7 +201,7 @@ class MontyHall:
 
     def statistics(self):
         """This method runs when the user selects option 4 from the main menu."""
-        stats_choice = self.get_statistics_menu_selection()
+        stats_choice = self.get_menu_selection(self.menus["stats"])
         if stats_choice == '1':
             print("Print name entry")
         if stats_choice == '2':
@@ -214,22 +214,6 @@ class MontyHall:
         while menu_choice not in menu.valid_inputs:
             menu_choice = input(menu.prompt)
         return menu_choice
-
-    def get_main_menu_selection(self):
-        """Prints the main menu and prompts the user for a selection."""
-        print(MAIN_MENU_TEXT)
-        main_menu_choice = input(MAIN_MENU_PROMPT)
-        while main_menu_choice not in VALID_MAIN_MENU_INPUTS:
-            main_menu_choice = input(MAIN_MENU_PROMPT)
-        return main_menu_choice
-
-    def get_door_menu_selection(self):
-        """Prints the door menu and prompts the user for a selection."""
-        print(DOOR_MENU)
-        door_choice = input(DOOR_PROMPT)
-        while door_choice not in VALID_DOOR_INPUTS:
-            door_choice = input(DOOR_PROMPT)
-        return door_choice
 
     def get_name_menu_selection(self):
         """Prints the name menu and prompts the user for a selection."""
@@ -244,22 +228,6 @@ class MontyHall:
         while name_menu_choice not in VALID_NAME_MENU_INPUTS:
             name_menu_choice = input(NAME_MENU_PROMPT)
         return name_menu_choice
-    
-    def get_name_confirmation(self):
-        """Prints the name menu and prompts the user for a selection."""
-        print(NAME_CONFIRMATION_MENU_TEXT)
-        name_confirmation = input(NAME_CONFIRMATION_PROMPT)
-        while name_confirmation not in ['1', '2']:
-            name_confirmation = input(NAME_CONFIRMATION_PROMPT)
-        return name_confirmation
-
-    def get_statistics_menu_selection(self):
-        """Prints the statistics menu and prompts the user for a selection."""
-        print(STATS_MENU_TEXT)
-        stats_choice = input(STATS_PROMPT)
-        while stats_choice not in VALID_STATS_MENU_INPUTS:
-            stats_choice = input(STATS_PROMPT)
-        return stats_choice
 
     def get_final_door_selection(self, selected_door, unselected_door, revealed):
         """Receives information about the status of each door, prompts the user if they would like to stay
@@ -292,7 +260,7 @@ class MontyHall:
 
     def main_menu(self):
         while True:
-            main_menu_choice = self.get_main_menu_selection()
+            main_menu_choice = self.get_menu_selection(self.menus["main"])
 
             # About
             if main_menu_choice == '1':
