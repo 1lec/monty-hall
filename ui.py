@@ -95,6 +95,14 @@ Statistics Menu
 """
 STATISTICS_PROMPT = "Enter menu option: "
 
+def get_main_menu_selection():
+    """Prints the main menu and prompts the user for a selection."""
+    print(MAIN_MENU_TEXT)
+    main_menu_choice = input(MAIN_MENU_PROMPT)
+    while main_menu_choice not in VALID_MAIN_MENU_INPUTS:
+        main_menu_choice = input(MAIN_MENU_PROMPT)
+    return main_menu_choice
+
 def generate_final_door_menu(selected_door, unselected_door):
     """Receives two door numbers and generates the final door selection menu."""
     final_door_menu = f"""
@@ -117,10 +125,7 @@ def main():
 
     name = ""
     while True:
-        print(MAIN_MENU_TEXT)
-        main_menu_choice = input(MAIN_MENU_PROMPT)
-        while main_menu_choice not in VALID_MAIN_MENU_INPUTS:
-            main_menu_choice = input(MAIN_MENU_PROMPT)
+        main_menu_choice = get_main_menu_selection()
 
         # About
         if main_menu_choice == '1':
