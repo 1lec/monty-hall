@@ -95,6 +95,21 @@ Statistics Menu
 """
 STATISTICS_PROMPT = "Enter menu option: "
 
+def generate_final_door_menu(selected_door, unselected_door):
+    """Receives two door numbers and generates the final door selection menu."""
+    final_door_menu = f"""
+You originally selected Door {selected_door}, but {unselected_door} is still available!
+Do you want to stay with your first choice, or switch to the other door?
+
+-----------------------------------------------------------
+Stay or Switch?
+-----------------------------------------------------------
+[1] Stay with Door {selected_door}
+[2] Switch to Door {unselected_door}
+-----------------------------------------------------------
+"""
+    return final_door_menu
+
 def main():
     context = zmq.Context()
     prng_socket = context.socket(zmq.REQ)
@@ -134,6 +149,11 @@ def main():
                             revealed = door
                 doors.remove(revealed)
                 print(f"Door {revealed} has a goat behind it!")
+                for door in doors:
+                    if door != door_choice:
+                        unselected_door = door
+                print(generate_final_door_menu(door_choice, unselected_door))
+
 
         # Name Selection
         if main_menu_choice == '3':
