@@ -108,6 +108,71 @@ class MontyHall:
         prng_socket.connect(f"tcp://localhost:{prng_port}")
         return prng_socket
 
+    def play(self):
+        """This method runs when the user selects option 3 from the main menu."""
+        doors = ['1', '2', '3']
+        # Randomly place prize behind a door
+        self.prng_socket.send_json({"type": "single", "N": 3})
+        prize = str(self.prng_socket.recv_json().get("random_number"))
+
+        door_choice = self.get_door_menu_selection()
+
+        if door_choice != '4':
+            if prize == door_choice:
+                exclusion_request = {"type": "excluded", "N": 3, "X": int(prize)}
+                self.prng_socket.send_json(exclusion_request)
+                revealed = str(self.prng_socket.recv_json().get("random_number"))
+            else:
+                for door in doors:
+                    if door != prize and door != door_choice:
+                        revealed = door
+            doors.remove(revealed)
+            print(f"Door {revealed} has a goat behind it!")
+            for door in doors:
+                if door != door_choice:
+                    unselected_door = door
+            print(self.generate_final_door_menu(door_choice, unselected_door))
+
+    def name_selection(self):
+        """This method runs when the user selects option 3 from the main menu."""
+        print(NAME_SELECTION_TEXT)
+        if self.name:
+            print(YES_NAME_SELECTED + self.name)
+        else:
+            print(NO_NAME_SELECTED)
+        print(NAME_SELECTION_MENU)
+
+        name_menu_choice = input(NAME_MENU_PROMPT)
+        while name_menu_choice not in VALID_NAME_MENU_INPUTS:
+            name_menu_choice = input(NAME_MENU_PROMPT)
+
+        # Choose a Name
+        if name_menu_choice == '1':
+            while True:
+                self.name = input(NAME_SELECTION_PROMPT).strip()
+                if self.name == "":
+                    print(NAME_NOT_ENTERED_TEXT)
+                else:
+                    print(f"You entered the name {self.name}.")
+                print(NAME_CONFIRMATION_MENU)
+                name_confirmation = input(NAME_CONFIRMATION_PROMPT)
+                while name_confirmation != '1' and name_confirmation != '2':
+                    name_confirmation = input(NAME_CONFIRMATION_PROMPT)
+                if name_confirmation == '1':
+                    break
+        
+        # Erase Name
+        if name_menu_choice == '2':
+            self.name = ""
+
+    def statistics(self):
+        """This method runs when the user selects option 4 from the main menu."""
+        stats_choice = self.get_statistics_menu_selection()
+        if stats_choice == '1':
+            print("Print name entry")
+        if stats_choice == '2':
+            print("leaderboard")
+
     def get_main_menu_selection(self):
         """Prints the main menu and prompts the user for a selection."""
         print(MAIN_MENU_TEXT)
@@ -147,7 +212,7 @@ class MontyHall:
     """
         return final_door_menu
 
-    def play(self):
+    def main_menu(self):
         while True:
             main_menu_choice = self.get_main_menu_selection()
 
@@ -157,69 +222,15 @@ class MontyHall:
 
             # Play
             if main_menu_choice == '2' or main_menu_choice == 'PLAY':
-                doors = ['1', '2', '3']
-                # Randomly place prize behind a door
-                self.prng_socket.send_json({"type": "single", "N": 3})
-                prize = str(self.prng_socket.recv_json().get("random_number"))
-
-                door_choice = self.get_door_menu_selection()
-
-                if door_choice != '4':
-                    if prize == door_choice:
-                        exclusion_request = {"type": "excluded", "N": 3, "X": int(prize)}
-                        self.prng_socket.send_json(exclusion_request)
-                        revealed = str(self.prng_socket.recv_json().get("random_number"))
-                    else:
-                        for door in doors:
-                            if door != prize and door != door_choice:
-                                revealed = door
-                    doors.remove(revealed)
-                    print(f"Door {revealed} has a goat behind it!")
-                    for door in doors:
-                        if door != door_choice:
-                            unselected_door = door
-                    print(self.generate_final_door_menu(door_choice, unselected_door))
-
+                self.play()
 
             # Name Selection
             if main_menu_choice == '3':
-                print(NAME_SELECTION_TEXT)
-                if self.name:
-                    print(YES_NAME_SELECTED + self.name)
-                else:
-                    print(NO_NAME_SELECTED)
-                print(NAME_SELECTION_MENU)
-
-                name_menu_choice = input(NAME_MENU_PROMPT)
-                while name_menu_choice not in VALID_NAME_MENU_INPUTS:
-                    name_menu_choice = input(NAME_MENU_PROMPT)
-
-                # Choose a Name
-                if name_menu_choice == '1':
-                    while True:
-                        self.name = input(NAME_SELECTION_PROMPT).strip()
-                        if self.name == "":
-                            print(NAME_NOT_ENTERED_TEXT)
-                        else:
-                            print(f"You entered the name {self.name}.")
-                        print(NAME_CONFIRMATION_MENU)
-                        name_confirmation = input(NAME_CONFIRMATION_PROMPT)
-                        while name_confirmation != '1' and name_confirmation != '2':
-                            name_confirmation = input(NAME_CONFIRMATION_PROMPT)
-                        if name_confirmation == '1':
-                            break
-                
-                # Erase Name
-                if name_menu_choice == '2':
-                    self.name = ""
+                self.name_selection()
 
             # Statistics
             if main_menu_choice == '4':
-                stats_choice = self.get_statistics_menu_selection()
-                if stats_choice == '1':
-                    print("Print name entry")
-                if stats_choice == '2':
-                    print("leaderboard")
+                self.statistics()
 
             # Exit Program
             if main_menu_choice == '5':
@@ -228,4 +239,4 @@ class MontyHall:
 
 if __name__ == "__main__":
     game = MontyHall('5555')
-    game.play()
+    game.main_menu()
