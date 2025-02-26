@@ -1,5 +1,6 @@
 import pydoc
 import zmq
+import textwrap
 
 VALID_MAIN_MENU_INPUTS = ['1', '2', '3', '4', '5', 'PLAY']
 
@@ -143,13 +144,6 @@ class MontyHall:
             else:
                 self.msg_socket.send_string("L")
             result = self.msg_socket.recv().decode()
-            print(f"""
-Initial Selection: {door_choice}
-Prize: {prize}
-Revealed: {revealed}
-Unselected Door: {unselected_door}
-Final Choice: {final_selection}
-""")
             print(result + '\n')
 
     def name_selection(self):
@@ -164,16 +158,20 @@ Final Choice: {final_selection}
                     print(NAME_NOT_ENTERED_TEXT)
                 else:
                     print(f"You entered the name {self.name}.")
-                print(NAME_CONFIRMATION_MENU)
-                name_confirmation = input(NAME_CONFIRMATION_PROMPT)
-                while name_confirmation != '1' and name_confirmation != '2':
-                    name_confirmation = input(NAME_CONFIRMATION_PROMPT)
+                name_confirmation = self.get_name_confirmation()
                 if name_confirmation == '1':
                     break
         
         # Erase Name
         if name_menu_choice == '2':
             self.name = ""
+
+        # Main Menu
+        if name_menu_choice == '3':
+            return
+        
+        # Repeat Name Selection Menu
+        self.name_selection()
 
     def statistics(self):
         """This method runs when the user selects option 4 from the main menu."""
@@ -212,6 +210,14 @@ Final Choice: {final_selection}
         while name_menu_choice not in VALID_NAME_MENU_INPUTS:
             name_menu_choice = input(NAME_MENU_PROMPT)
         return name_menu_choice
+    
+    def get_name_confirmation(self):
+        """Prints the name menu and prompts the user for a selection."""
+        print(NAME_CONFIRMATION_MENU)
+        name_confirmation = input(NAME_CONFIRMATION_PROMPT)
+        while name_confirmation not in ['1', '2']:
+            name_confirmation = input(NAME_CONFIRMATION_PROMPT)
+        return name_confirmation
 
     def get_statistics_menu_selection(self):
         """Prints the statistics menu and prompts the user for a selection."""
@@ -224,20 +230,22 @@ Final Choice: {final_selection}
     def get_final_door_selection(self, selected_door, unselected_door, revealed):
         """Receives information about the status of each door, prompts the user if they would like to stay
         with their original choice or not, and returns the user's final door selection."""
-        final_door_menu = f"""
-    Door {revealed} has a goat behind it!
 
-    You originally selected Door {selected_door}, but {unselected_door} is still available.
-    Do you want to stay with your first choice, or switch to the other door?
+        final_door_menu = textwrap.dedent(f"""
+        Door {revealed} has a goat behind it!
 
-    -----------------------------------------------------------
-    Stay or Switch?
-    -----------------------------------------------------------
-    [STAY]   Stay with Door {selected_door}
-    [SWITCH] Switch to Door {unselected_door}
-    -----------------------------------------------------------
-    """
+        You originally selected Door {selected_door}, but {unselected_door} is still available.
+        Do you want to stay with your first choice, or switch to the other door?
+
+        -----------------------------------------------------------
+        Stay or Switch?
+        -----------------------------------------------------------
+        [STAY]   Stay with Door {selected_door}
+        [SWITCH] Switch to Door {unselected_door}
+        -----------------------------------------------------------
+        """)
         print(final_door_menu)
+
         final_selection = input("Enter STAY or SWTICH: ")
         while final_selection not in ['STAY', 'SWITCH']:
             final_selection = input("Enter STAY or SWTICH: ")
@@ -257,7 +265,7 @@ Final Choice: {final_selection}
                 pydoc.pager(ABOUT_MONTY_HALL_TEXT)
 
             # Play
-            if main_menu_choice == '2' or main_menu_choice == 'PLAY':
+            if main_menu_choice in ['2', 'PLAY']:
                 self.play()
 
             # Name Selection
