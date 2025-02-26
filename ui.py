@@ -97,16 +97,23 @@ STATISTICS_PROMPT = "Enter menu option: "
 
 class MontyHall:
     """Represents a game of Monty Hall."""
-    def __init__(self, prng_port):
+    def __init__(self, prng_port, msg_port):
         self.name = ""
         self.context = zmq.Context()
         self.prng_socket = self.prng_connect(prng_port)
+        self.msg_socket = self.prng_connect(msg_port)
 
     def prng_connect(self, prng_port):
         """Receives a port number and forms a ZeroMQ connection through the port."""
         prng_socket = self.context.socket(zmq.REQ)
         prng_socket.connect(f"tcp://localhost:{prng_port}")
         return prng_socket
+    
+    def msg_connect(self, msg_port):
+        """Receives a port number and forms a ZeroMQ connection through the port."""
+        msg_socket = self.context.socket(zmq.REQ)
+        msg_socket.connect(f"tcp://localhost:{msg_port}")
+        return msg_socket
 
     def play(self):
         """This method runs when the user selects option 3 from the main menu."""
@@ -127,11 +134,23 @@ class MontyHall:
                     if door != prize and door != door_choice:
                         revealed = door
             doors.remove(revealed)
-            print(f"Door {revealed} has a goat behind it!")
             for door in doors:
                 if door != door_choice:
                     unselected_door = door
-            print(self.generate_final_door_menu(door_choice, unselected_door))
+            final_selection = self.get_final_door_selection(door_choice, unselected_door, revealed)
+            if final_selection == prize:
+                self.msg_socket.send_string("W")
+            else:
+                self.msg_socket.send_string("L")
+            result = self.msg_socket.recv().decode()
+            print(f"""
+Initial Selection: {door_choice}
+Prize: {prize}
+Revealed: {revealed}
+Unselected Door: {unselected_door}
+Final Choice: {final_selection}
+""")
+            print(result + '\n')
 
     def name_selection(self):
         """This method runs when the user selects option 3 from the main menu."""
@@ -202,20 +221,32 @@ class MontyHall:
             stats_choice = input(STATISTICS_PROMPT)
         return stats_choice
 
-    def generate_final_door_menu(self, selected_door, unselected_door):
-        """Receives two door numbers and generates the final door selection menu."""
+    def get_final_door_selection(self, selected_door, unselected_door, revealed):
+        """Receives information about the status of each door, prompts the user if they would like to stay
+        with their original choice or not, and returns the user's final door selection."""
         final_door_menu = f"""
-    You originally selected Door {selected_door}, but {unselected_door} is still available!
+    Door {revealed} has a goat behind it!
+
+    You originally selected Door {selected_door}, but {unselected_door} is still available.
     Do you want to stay with your first choice, or switch to the other door?
 
     -----------------------------------------------------------
     Stay or Switch?
     -----------------------------------------------------------
-    [1] Stay with Door {selected_door}
-    [2] Switch to Door {unselected_door}
+    [STAY]   Stay with Door {selected_door}
+    [SWITCH] Switch to Door {unselected_door}
     -----------------------------------------------------------
     """
-        return final_door_menu
+        print(final_door_menu)
+        final_selection = input("Enter STAY or SWTICH: ")
+        while final_selection not in ['STAY', 'SWITCH']:
+            final_selection = input("Enter STAY or SWTICH: ")
+        
+        if final_selection == 'STAY':
+            return selected_door
+        else:
+            return unselected_door
+
 
     def main_menu(self):
         while True:
@@ -243,5 +274,5 @@ class MontyHall:
 
 
 if __name__ == "__main__":
-    game = MontyHall('5555')
+    game = MontyHall('5555', '5556')
     game.main_menu()
