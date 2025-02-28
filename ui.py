@@ -197,21 +197,7 @@ class MontyHall:
                 if door != door_choice:
                     unselected_door = door
             final_selection = self.get_final_door_selection(door_choice, unselected_door, revealed)
-            if final_selection == prize:
-                self.msg_socket.send_string("W")
-                if self.name:
-                    self.db_socket.send_json({"type": "game", "name": self.name, "result": 1})
-            else:
-                self.msg_socket.send_string("L")
-                if self.name:
-                    self.db_socket.send_json({"type": "game", "name": self.name, "result": 0})
-            result_message = self.msg_socket.recv().decode()
-            if self.name:
-                db_message = self.db_socket.recv_string()
-            else:
-                db_message = "You did play under a name, so the result was not saved."
-            print(result_message)
-            print(db_message + '\n')
+            self.determine_result(final_selection, prize)
 
     def name_selection(self):
         """This method runs when the user selects option 3 from the main menu."""
@@ -287,6 +273,27 @@ class MontyHall:
             return selected_door
         else:
             return unselected_door
+        
+    def determine_result(self, final_selection, prize):
+        """Receives the user's final door selection and the prize location to determines the game result. Prints a
+        random congratulatory/failure message depending on the result, and if the user is playing under a name,
+        saves the game result to a database."""
+        if final_selection == prize:
+            self.msg_socket.send_string("W")
+            if self.name:
+                self.db_socket.send_json({"type": "game", "name": self.name, "result": 1})
+        else:
+            self.msg_socket.send_string("L")
+            if self.name:
+                self.db_socket.send_json({"type": "game", "name": self.name, "result": 0})
+
+        result_message = self.msg_socket.recv().decode()
+        if self.name:
+            db_message = self.db_socket.recv_string()
+        else:
+            db_message = "Game result was not saved. Play under a name to save results."
+        print(result_message)
+        print(db_message + '\n')
 
 
 if __name__ == "__main__":
