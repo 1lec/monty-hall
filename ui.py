@@ -111,11 +111,12 @@ class Menu:
 
 class MontyHall:
     """Represents a game of Monty Hall."""
-    def __init__(self, prng_port, msg_port):
+    def __init__(self, prng_port, msg_port, db_port):
         self.name = ""
         self.context = zmq.Context()
         self.prng_socket = self.prng_connect(prng_port)
         self.msg_socket = self.prng_connect(msg_port)
+        self.db_socket = self.prng_connect(db_port)
         self.menus = {
             "main": Menu("main", MAIN_MENU_TEXT, MAIN_MENU_PROMPT, VALID_MAIN_MENU_INPUTS),
             "door": Menu("door", DOOR_MENU, DOOR_PROMPT, VALID_DOOR_INPUTS),
@@ -134,6 +135,12 @@ class MontyHall:
         """Receives a port number and forms a ZeroMQ connection through the port."""
         msg_socket = self.context.socket(zmq.REQ)
         msg_socket.connect(f"tcp://localhost:{msg_port}")
+        return msg_socket
+
+    def db_connect(self, db_port):
+        """Receives a port number and forms a ZeroMQ connection through the port."""
+        msg_socket = self.context.socket(zmq.REQ)
+        msg_socket.connect(f"tcp://localhost:{db_port}")
         return msg_socket
     
     def get_prn(self, exclude=None):
@@ -192,10 +199,19 @@ class MontyHall:
             final_selection = self.get_final_door_selection(door_choice, unselected_door, revealed)
             if final_selection == prize:
                 self.msg_socket.send_string("W")
+                if self.name:
+                    self.db_socket.send_json({"type": "game", "name": self.name, "result": 1})
             else:
                 self.msg_socket.send_string("L")
-            result = self.msg_socket.recv().decode()
-            print(result + '\n')
+                if self.name:
+                    self.db_socket.send_json({"type": "game", "name": self.name, "result": 0})
+            result_message = self.msg_socket.recv().decode()
+            if self.name:
+                db_message = self.db_socket.recv_string()
+            else:
+                db_message = "You did play under a name, so the result was not saved."
+            print(result_message)
+            print(db_message + '\n')
 
     def name_selection(self):
         """This method runs when the user selects option 3 from the main menu."""
@@ -274,5 +290,5 @@ class MontyHall:
 
 
 if __name__ == "__main__":
-    game = MontyHall('5555', '5556')
+    game = MontyHall('5555', '5556', '5557')
     game.main_menu()
