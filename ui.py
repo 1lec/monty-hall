@@ -93,11 +93,26 @@ Statistics Menu
 -----------------------------------------------------------
 [1] Winning Percentage
 [2] Leaderboard
-[3] Main Menu
+[3] Clear Statistics for a Name
+[4] Clear All Statistics
+[5] Main Menu
 -----------------------------------------------------------
 """
 STATS_PROMPT = "Enter menu option: "
-VALID_STATS_MENU_INPUTS = ['1', '2', '3']
+VALID_STATS_MENU_INPUTS = ['1', '2', '3', '4', '5']
+
+DELETE_CONFIRM_MENU_TEXT = """
+WARNING - This action cannot be undone.
+
+-----------------------------------------------------------
+Confirm Deletion
+-----------------------------------------------------------
+[1] Yes
+[2] No
+-----------------------------------------------------------
+"""
+DELETE_CONFIRM_PROMPT = "Confirm deletion: "
+VALID_DELETE_CONFIRM_INPUTS = ['1', '2']
 
 
 class Menu:
@@ -122,7 +137,8 @@ class MontyHall:
             "door": Menu("door", DOOR_MENU, DOOR_PROMPT, VALID_DOOR_INPUTS),
             "name": Menu("name", NAME_MENU_TEXT, NAME_MENU_PROMPT, VALID_NAME_MENU_INPUTS),
             "name_confirm": Menu("name_confirm", NAME_CONFIRM_MENU_TEXT, NAME_CONFIRM_PROMPT, VALID_NAME_CONFIRM_INPUTS),
-            "stats": Menu("stats", STATS_MENU_TEXT, STATS_PROMPT, VALID_STATS_MENU_INPUTS)
+            "stats": Menu("stats", STATS_MENU_TEXT, STATS_PROMPT, VALID_STATS_MENU_INPUTS),
+            "delete": Menu("delete", DELETE_CONFIRM_MENU_TEXT, DELETE_CONFIRM_PROMPT, VALID_DELETE_CONFIRM_INPUTS)
         }
 
     def prng_connect(self, prng_port):
@@ -230,18 +246,37 @@ class MontyHall:
         """This method runs when the user selects option 4 from the main menu."""
         stats_choice = self.get_menu_selection(self.menus["stats"])
         if stats_choice == '1':
-            print("Print name entry")
+            print("View Winning Percentage")
         if stats_choice == '2':
-            print("leaderboard")
+            print("View Leaderboard")
+        if stats_choice == '3':
+            name_to_delete = input("Enter a name to be cleared: ")
+            while not name_to_delete:
+                name_to_delete = input("Enter a name to be cleared: ")
+            confirmation = self.get_menu_selection(self.menus["delete"], name_to_delete)
+            if confirmation == '1':
+                self.db_socket.send_json({"type": "delete", "name": name_to_delete})
+                print(self.db_socket.recv().decode())
 
-    def get_menu_selection(self, menu):
-        """Receives a menu object, prompts the user for valid input, and returns the user's selection."""
+        if stats_choice == '4':
+            print("Clear All Statistics")
+        if stats_choice == '5':
+            return
+        
+        self.statistics()
+
+    def get_menu_selection(self, menu, name_to_delete=None):
+        """Receives a menu object, prompts the user for valid input, and returns the user's selection.
+        """
         if menu.title == "name":
             print(NAME_SELECTION_TEXT)
             if self.name:
                 print(YES_NAME_SELECTED + self.name)
             else:
                 print(NO_NAME_SELECTED)
+
+        if menu.title == "delete":
+            print(f"You are requesting to delete all records of the name {name_to_delete}.")
 
         print(menu.text)
         menu_choice = input(menu.prompt)
