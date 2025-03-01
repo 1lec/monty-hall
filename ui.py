@@ -249,28 +249,24 @@ class MontyHall:
             print("View Winning Percentage")
         if stats_choice == '2':
             print("View Leaderboard")
-        if stats_choice == '3':
-            name_to_delete = input("Enter a name to be cleared: ")
-            while not name_to_delete:
-                name_to_delete = input("Enter a name to be cleared: ")
-            confirmation = self.get_menu_selection(self.menus["delete"], name_to_delete)
-            if confirmation == '1':
-                self.db_socket.send_json({"type": "delete", "name": name_to_delete})
-                print(self.db_socket.recv().decode())
-                
-        if stats_choice == '4':
-            confirmation = self.get_menu_selection(self.menus["delete"])
-            if confirmation == '1':
-                self.db_socket.send_json({"type": "delete-all"})
-                print(self.db_socket.recv().decode())
 
+        # Delete records for a specific name
+        if stats_choice == '3':
+            self.delete_games(False)
+
+        # Delete records for all names
+        if stats_choice == '4':
+            self.delete_games(True)
+
+        # Return to main menu
         if stats_choice == '5':
             return
         
         self.statistics()
 
     def get_menu_selection(self, menu, name_to_delete=None):
-        """Receives a menu object, prompts the user for valid input, and returns the user's selection.
+        """Receives a menu object, prompts the user for valid input, and returns the user's selection. Optionally can receive
+        a name, which triggers the name-specific deletion menu.
         """
         if menu.title == "name":
             print(NAME_SELECTION_TEXT)
@@ -336,6 +332,23 @@ class MontyHall:
             db_message = "Game result was not saved. Play under a name to save results."
         print(result_message)
         print(db_message + '\n')
+
+    def delete_games(self, delete_all):
+        """Receives a boolean that if True, deletes all records from the database, but if False, prompts the user to
+        enter a name and deletes all records for that name."""
+        if delete_all:
+            confirmation = self.get_menu_selection(self.menus["delete"])
+            if confirmation == '1':
+                self.db_socket.send_json({"type": "delete-all"})
+                print(self.db_socket.recv().decode())
+        else:
+            name_to_delete = input("Enter a name to be cleared: ")
+            while not name_to_delete:
+                name_to_delete = input("Enter a name to be cleared: ")
+            confirmation = self.get_menu_selection(self.menus["delete"], name_to_delete)
+            if confirmation == '1':
+                self.db_socket.send_json({"type": "delete", "name": name_to_delete})
+                print(self.db_socket.recv().decode())
 
 
 if __name__ == "__main__":
