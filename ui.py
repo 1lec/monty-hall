@@ -257,9 +257,13 @@ class MontyHall:
             if confirmation == '1':
                 self.db_socket.send_json({"type": "delete", "name": name_to_delete})
                 print(self.db_socket.recv().decode())
-
+                
         if stats_choice == '4':
-            print("Clear All Statistics")
+            confirmation = self.get_menu_selection(self.menus["delete"])
+            if confirmation == '1':
+                self.db_socket.send_json({"type": "delete-all"})
+                print(self.db_socket.recv().decode())
+
         if stats_choice == '5':
             return
         
@@ -276,7 +280,10 @@ class MontyHall:
                 print(NO_NAME_SELECTED)
 
         if menu.title == "delete":
-            print(f"You are requesting to delete all records of the name {name_to_delete}.")
+            if name_to_delete:
+                print(f"You are requesting to delete ALL records of the name {name_to_delete}.")
+            else:
+                print(f"You are requesting to delete ALL records for ALL names.")
 
         print(menu.text)
         menu_choice = input(menu.prompt)
