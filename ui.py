@@ -356,14 +356,6 @@ class MontyHall:
                 self.db_socket.send_json({"type": "delete", "name": name_to_delete})
                 print(self.db_socket.recv().decode())
 
-    def get_games(socket, name):
-        socket.send_json({"type": "player", "name": name})
-        response = socket.recv_json()
-        if response["status"] == "success":
-            print(response["games"])
-        else:
-            print(response["message"])
-
     def get_winning_percentage(self):
         """Prompts the user for a name, and if this name has any results, prints out the name's winning percentage."""
         # Prompts user for a non-empty name
