@@ -365,12 +365,15 @@ class MontyHall:
             print(response["message"])
 
     def get_winning_percentage(self):
-        """Prompts the user for a name and returns the winning percentage for this name."""
+        """Prompts the user for a name, and if this name has any results, prints out the name's winning percentage."""
+        # Prompts user for a non-empty name
         name = input("Enter a name to get a winning percentage: ").strip()
         while not name:
             name = input("Enter a name to get a winning percentage: ").strip()
+        # Requests results for said name
         self.db_socket.send_json({"type": "player", "name": name})
         response = self.db_socket.recv_json()
+        # If results exist, calculate and print the winning percentage
         if response["status"] == "success":
             self.stats_socket.send_json({"type": "win-percent", "results": response["games"]})
             response = self.stats_socket.recv_json()
