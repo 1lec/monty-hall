@@ -126,12 +126,13 @@ class Menu:
 
 class MontyHall:
     """Represents a game of Monty Hall."""
-    def __init__(self, prng_port, msg_port, db_port):
+    def __init__(self, prng_port, msg_port, db_port, stats_port):
         self.name = ""
         self.context = zmq.Context()
         self.prng_socket = self.prng_connect(prng_port)
         self.msg_socket = self.prng_connect(msg_port)
         self.db_socket = self.prng_connect(db_port)
+        self.stats_socket = self.stats_connect(stats_port)
         self.menus = {
             "main": Menu("main", MAIN_MENU_TEXT, MAIN_MENU_PROMPT, VALID_MAIN_MENU_INPUTS),
             "door": Menu("door", DOOR_MENU, DOOR_PROMPT, VALID_DOOR_INPUTS),
@@ -143,21 +144,27 @@ class MontyHall:
 
     def prng_connect(self, prng_port):
         """Receives a port number and forms a ZeroMQ connection through the port."""
-        prng_socket = self.context.socket(zmq.REQ)
-        prng_socket.connect(f"tcp://localhost:{prng_port}")
-        return prng_socket
+        socket = self.context.socket(zmq.REQ)
+        socket.connect(f"tcp://localhost:{prng_port}")
+        return socket
     
     def msg_connect(self, msg_port):
         """Receives a port number and forms a ZeroMQ connection through the port."""
-        msg_socket = self.context.socket(zmq.REQ)
-        msg_socket.connect(f"tcp://localhost:{msg_port}")
-        return msg_socket
+        socket = self.context.socket(zmq.REQ)
+        socket.connect(f"tcp://localhost:{msg_port}")
+        return socket
 
     def db_connect(self, db_port):
         """Receives a port number and forms a ZeroMQ connection through the port."""
-        msg_socket = self.context.socket(zmq.REQ)
-        msg_socket.connect(f"tcp://localhost:{db_port}")
-        return msg_socket
+        socket = self.context.socket(zmq.REQ)
+        socket.connect(f"tcp://localhost:{db_port}")
+        return socket
+    
+    def stats_connect(self, stats_port):
+        """Receives a port number and forms a ZeroMQ connection through the port."""
+        socket = self.context.socket(zmq.REQ)
+        socket.connect(f"tcp://localhost:{stats_port}")
+        return socket
     
     def get_prn(self, exclude=None):
         """Returns a pseudorandom number in the range 1 to 3, inclusive. If the exclude parameter
@@ -245,19 +252,18 @@ class MontyHall:
     def statistics(self):
         """This method runs when the user selects option 4 from the main menu."""
         stats_choice = self.get_menu_selection(self.menus["stats"])
+        # Get winning percentage for a single player
         if stats_choice == '1':
-            print("View Winning Percentage")
+            self.get_winning_percentage()
+        # Print top 10 names by winning percentage
         if stats_choice == '2':
-            print("View Leaderboard")
-
+            self.get_leaderboard()
         # Delete records for a specific name
         if stats_choice == '3':
             self.delete_games(False)
-
         # Delete records for all names
         if stats_choice == '4':
             self.delete_games(True)
-
         # Return to main menu
         if stats_choice == '5':
             return
@@ -350,7 +356,28 @@ class MontyHall:
                 self.db_socket.send_json({"type": "delete", "name": name_to_delete})
                 print(self.db_socket.recv().decode())
 
+    def get_games(socket, name):
+        socket.send_json({"type": "player", "name": name})
+        response = socket.recv_json()
+        if response["status"] == "success":
+            print(response["games"])
+        else:
+            print(response["message"])
+
+    def get_winning_percentage(self):
+        """Prompts the user for a name and returns the winning percentage for this name."""
+        name = input("Enter a name to get a winning percentage: ")
+        self.db_socket.send_json({"type": "player", "name": name})
+        response = self.db_socket.recv_json()
+        self.stats_socket.send_json({"type": "win-percent", "results": response["games"]})
+        response = self.stats_socket.recv_json()
+        print(response["win-percent"])
+
+    def get_leaderboard(self):
+        """Prints the top 10 names by winning percentage."""
+        pass
+
 
 if __name__ == "__main__":
-    game = MontyHall('5555', '5556', '5557')
+    game = MontyHall('5555', '5556', '5557', '5558')
     game.main_menu()
