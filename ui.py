@@ -375,7 +375,18 @@ class MontyHall:
 
     def get_leaderboard(self):
         """Prints the top 10 names by winning percentage."""
-        pass
+        # Requests all game results from database
+        self.db_socket.send_json({"type": "all-players"})
+        response = self.db_socket.recv_json()
+        # If request was successful, send game results to stats microservice to compile the 10 names with the highest win percentage
+        if response["status"] == "success":
+            self.stats_socket.send_json({"type": "leaderboard", "results": response["games"]})
+            response = self.stats_socket.recv_json()
+            print(response["leaderboard"])
+        else:
+            print(response["message"])
+        
+        
 
 
 if __name__ == "__main__":
