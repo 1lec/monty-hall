@@ -1,6 +1,8 @@
 import pydoc
 import zmq
 import textwrap
+import pandas as pd
+import io
 
 MAIN_MENU_TEXT = """Welcome to the Monty Hall Game Simulator!
 Type PLAY and press enter to start a game, or using your keyboard,
@@ -382,25 +384,8 @@ class MontyHall:
         if response["status"] == "success":
             self.stats_socket.send_json({"type": "leaderboard", "results": response["games"]})
             response = self.stats_socket.recv_json()
-            leaderboard = textwrap.dedent("""
-            _     _____    _    ____  _____ ____  ____   ___    _    ____  ____  
-            | |   | ____|  / \  |  _ \| ____|  _ \| __ ) / _ \  / \  |  _ \|  _ \ 
-            | |   |  _|   / _ \ | | | |  _| | |_) |  _ \| | | |/ _ \ | |_) | | | |
-            | |___| |___ / ___ \| |_| | |___|  _ <| |_) | |_| / ___ \|  _ <| |_| |
-            |_____|_____/_/   \_\____/|_____|_| \_\____/ \___/_/   \_\_| \_\____/                                               
-                                    \n""")
-            for index, row in enumerate(response["leaderboard"]):
-                place = str(index + 1)
-                if place == '1':
-                    suffix = 'st'
-                elif place == '2':
-                    suffix = 'nd'
-                elif place == '3':
-                    suffix = 'rd'
-                else:
-                    suffix = 'th'
-                leaderboard += place + suffix + ' ' + row[0] + ' ' + str(row[1]) + '\n'
-            pydoc.pager(leaderboard)
+            leaderboard = pd.read_json(io.StringIO(response))
+            print(leaderboard)
         else:
             print(response["message"])
         
