@@ -385,13 +385,14 @@ class MontyHall:
             self.stats_socket.send_json({"type": "leaderboard", "results": response["games"]})
             response = self.stats_socket.recv_json()
             leaderboard = pd.read_json(io.StringIO(response))
-            print(leaderboard)
+            leaderboard_header = "The Monty Hall Game Leaderboard\n\n"
+            dataframe_string = leaderboard.to_string()
+            exit_string = "Press 'q' to return to Statistics Menu"
+            pydoc.pager(leaderboard_header + dataframe_string + '\n\n' + exit_string)
         else:
             print(response["message"])
         
         
-
-
 if __name__ == "__main__":
     game = MontyHall('5555', '5556', '5557', '5558')
     game.main_menu()
